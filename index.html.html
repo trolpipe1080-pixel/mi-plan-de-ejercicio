@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Plan de Entrenamiento</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --fire: #FF4D00;
+    --fire-light: #FF7A3D;
+    --dark: #0D0D0D;
+    --dark-2: #1A1A1A;
+    --dark-3: #252525;
+    --card: #1E1E1E;
+    --text: #F0EDE8;
+    --muted: #888;
+    --rest-text: #666;
+    --green: #4ADE80;
+    --yellow: #FACC15;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+
+  .noise {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+  }
+
+  .container { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; }
+
+  header { margin-bottom: 2.5rem; animation: fadeUp 0.6s ease both; }
+
+  .label {
+    font-size: 0.7rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--fire); font-weight: 600; margin-bottom: 0.4rem;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 10vw, 5.5rem);
+    line-height: 0.9; letter-spacing: 0.02em; color: var(--text);
+  }
+  h1 span { color: var(--fire); }
+  .subtitle { margin-top: 0.8rem; color: var(--muted); font-size: 0.9rem; font-weight: 300; }
+
+  /* Today banner */
+  .today-banner {
+    background: linear-gradient(135deg, #1e1208, #1e1e1e);
+    border: 1px solid var(--fire); border-radius: 14px;
+    padding: 1.2rem 1.5rem; margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 1rem;
+    animation: fadeUp 0.5s ease both;
+  }
+  .today-dot {
+    width: 10px; height: 10px; background: var(--fire); border-radius: 50%;
+    flex-shrink: 0; box-shadow: 0 0 8px var(--fire); animation: pulse 2s infinite;
+  }
+  .today-info .today-label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--fire); font-weight: 600; }
+  .today-info .today-text { font-size: 0.9rem; font-weight: 500; margin-top: 0.1rem; }
+
+  /* Week tabs */
+  .week-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; animation: fadeUp 0.6s 0.1s ease both; }
+  .tab {
+    padding: 0.4rem 1rem; border-radius: 999px; font-size: 0.78rem; font-weight: 500;
+    cursor: pointer; border: 1px solid #333; background: transparent; color: var(--muted);
+    transition: all 0.2s; letter-spacing: 0.05em;
+  }
+  .tab.active, .tab:hover { background: var(--fire); border-color: var(--fire); color: white; }
+
+  /* Calendar */
+  .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; animation: fadeUp 0.6s 0.2s ease both; }
+
+  @media (max-width: 700px) {
+    .calendar { grid-template-columns: 1fr; }
+  }
+
+  .day-card {
+    background: var(--card); border-radius: 12px; padding: 1rem 0.8rem;
+    border: 1px solid #2a2a2a; transition: transform 0.2s, border-color 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .day-card:hover { transform: translateY(-3px); border-color: #444; }
+  .day-card.train { border-color: #3a2010; background: linear-gradient(160deg, #1e1a17 0%, #1e1e1e 100%); }
+  .day-card.train:hover { border-color: var(--fire-light); }
+  .day-card.train::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--fire), var(--fire-light));
+  }
+  .day-card.today { border-color: var(--fire); box-shadow: 0 0 20px rgba(255,77,0,0.15); }
+
+  .day-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; }
+  .day-card.train .day-name { color: var(--fire-light); }
+  .day-card.today .day-name { color: var(--fire); }
+
+  .day-type {
+    font-size: 0.65rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 4px; display: inline-block;
+  }
+  .badge-train { background: rgba(255,77,0,0.15); color: var(--fire-light); }
+  .badge-rest { background: rgba(255,255,255,0.04); color: var(--rest-text); }
+  .badge-active { background: rgba(74,222,128,0.1); color: var(--green); }
+
+  /* Exercise list */
+  .exercises { list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }
+
+  .ex-item {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.4rem; padding: 0.25rem 0;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .ex-item:last-child { border-bottom: none; }
+
+  .ex-name {
+    font-size: 0.7rem; color: #ccc; font-weight: 400; flex: 1;
+    display: flex; align-items: center; gap: 0.35rem;
+  }
+  .ex-name::before {
+    content: ''; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--fire); flex-shrink: 0;
+  }
+
+  .yt-btn {
+    display: inline-flex; align-items: center; gap: 0.25rem;
+    background: rgba(255, 77, 0, 0.12); border: 1px solid rgba(255,77,0,0.3);
+    color: var(--fire-light); border-radius: 5px; padding: 0.18rem 0.45rem;
+    font-size: 0.6rem; font-weight: 600; letter-spacing: 0.05em; text-decoration: none;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+  }
+  .yt-btn:hover { background: var(--fire); border-color: var(--fire); color: white; }
+  .yt-btn svg { width: 8px; height: 8px; fill: currentColor; }
+
+  .duration { margin-top: 0.7rem; font-size: 0.68rem; color: var(--muted); display: flex; align-items: center; gap: 0.3rem; }
+  .rest-icon { font-size: 1.4rem; margin: 0.3rem 0; opacity: 0.4; }
+  .rest-text { font-size: 0.72rem; color: var(--rest-text); line-height: 1.4; }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100;
+    display: flex; align-items: center; justify-content: center; padding: 1rem;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--dark-3); border: 1px solid #333; border-radius: 16px;
+    width: 100%; max-width: 560px; padding: 1.5rem; position: relative;
+    transform: translateY(20px); transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-close {
+    position: absolute; top: 1rem; right: 1rem; background: #333; border: none;
+    color: var(--text); width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+    font-size: 1rem; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .modal-close:hover { background: var(--fire); }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--fire); margin-bottom: 0.3rem; }
+  .modal-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.6; }
+  .modal-steps { list-style: none; margin-bottom: 1.2rem; }
+  .modal-steps li {
+    font-size: 0.78rem; color: #ccc; padding: 0.4rem 0; border-bottom: 1px solid #2a2a2a;
+    display: flex; gap: 0.6rem;
+  }
+  .modal-steps li:last-child { border-bottom: none; }
+  .step-num {
+    background: var(--fire); color: white; width: 18px; height: 18px; border-radius: 50%;
+    font-size: 0.6rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+  }
+  .modal-tip { background: rgba(255,77,0,0.08); border-left: 3px solid var(--fire); padding: 0.6rem 0.8rem; border-radius: 0 8px 8px 0; font-size: 0.75rem; color: #bbb; margin-bottom: 1.2rem; }
+  .modal-yt {
+    display: flex; align-items: center; gap: 0.6rem; background: #FF0000;
+    color: white; border: none; border-radius: 8px; padding: 0.7rem 1.2rem;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer; text-decoration: none;
+    transition: opacity 0.15s; width: 100%; justify-content: center;
+  }
+  .modal-yt:hover { opacity: 0.85; }
+  .modal-yt svg { width: 18px; height: 18px; fill: white; }
+
+  /* Progress */
+  .progress-section { margin-top: 2rem; animation: fadeUp 0.6s 0.3s ease both; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.05em; margin-bottom: 1rem; }
+  .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.8rem; }
+  .prog-card { background: var(--card); border: 1px solid #2a2a2a; border-radius: 12px; padding: 1rem 1.2rem; }
+  .prog-card .week-label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+  .prog-card .prog-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+  .prog-card .prog-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.5; font-weight: 300; }
+  .prog-bar { height: 3px; background: #2a2a2a; border-radius: 99px; margin-top: 0.8rem; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--fire), var(--fire-light)); }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+  <header>
+    <div class="label">Plan personalizado · Semana 1–8</div>
+    <h1>QUEMAR<br><span>GRASA</span><br>EN CASA</h1>
+    <p class="subtitle">Principiante · 45–60 min · 3 días/semana · Sin equipo</p>
+  </header>
+
+  <div class="today-banner">
+    <div class="today-dot"></div>
+    <div class="today-info">
+      <div class="today-label" id="todayLabel">Hoy</div>
+      <div class="today-text" id="todayText">Cargando...</div>
+    </div>
+  </div>
+
+  <div class="week-tabs">
+    <button class="tab active" onclick="showWeek(1,this)">Semana 1–2</button>
+    <button class="tab" onclick="showWeek(2,this)">Semana 3–4</button>
+    <button class="tab" onclick="showWeek(3,this)">Semana 5–6</button>
+    <button class="tab" onclick="showWeek(4,this)">Semana 7–8</button>
+  </div>
+
+  <div class="calendar" id="calendar"></div>
+
+  <div class="progress-section">
+    <div class="section-title">Progresión por mes</div>
+    <div class="progress-grid">
+      <div class="prog-card">
+        <div class="week-label">Semanas 1–2</div>
+        <div class="prog-title">Adaptación</div>
+        <div class="prog-desc">Aprende la técnica. 3 series × 8 reps. Descanso 90 seg entre ejercicios.</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:25%"></div></div>
+      </div>
+      <div class="prog-card">
+        <div class="week-label">Semanas 3–4</div>
+        <div class="prog-title">Construcción</div>
+        <div class="prog-desc">Aumenta a 3 series × 12 reps. Descanso 60 seg. Sientes que sudas más.</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:50%"></div></div>
+      </div>
+      <div class="prog-card">
+        <div class="week-label">Semanas 5–6</div>
+        <div class="prog-title">Intensidad</div>
+        <div class="prog-desc">Formato AMRAP: máximo reps en 40 seg. Incluye burpees y mountain climbers.</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:75%"></div></div>
+      </div>
+      <div class="prog-card">
+        <div class="week-label">Semanas 7–8</div>
+        <div class="prog-title">Consolidación</div>
+        <div class="prog-desc">4 días/semana. Circuitos de 4 rondas. Empiezas a ver resultados visibles.</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-desc" id="modalDesc"></div>
+    <ul class="modal-steps" id="modalSteps"></ul>
+    <div class="modal-tip" id="modalTip"></div>
+    <a class="modal-yt" id="modalYT" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>
+      Ver video en YouTube
+    </a>
+  </div>
+</div>
+
+<script>
+const exercises = {
+  'Sentadillas': {
+    desc: 'El ejercicio base para piernas y glúteos. Fundamental para cualquier rutina.',
+    steps: ['Párate con pies a la altura de los hombros','Baja como si fueras a sentarte en una silla','Rodillas alineadas con los pies, no hacia adentro','Espalda recta y pecho arriba','Baja hasta que los muslos queden paralelos al suelo','Empuja con los talones para subir'],
+    tip: '💡 Principiante: Practica primero sentándote en una silla y levantándote sin apoyarte.',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+sentadillas+correctamente+principiantes'
+  },
+  'Flexiones': {
+    desc: 'Trabaja pecho, hombros y tríceps. Una de las mejores para tren superior.',
+    steps: ['Manos al ancho de los hombros en el suelo','Cuerpo en línea recta de cabeza a talones','Baja el pecho hasta casi tocar el suelo','Core apretado todo el tiempo','Empuja hacia arriba extendiendo los codos','Versión fácil: apoya las rodillas en el suelo'],
+    tip: '💡 Si no puedes hacer ninguna completa, empieza con rodillas en el suelo. Es lo mismo del plan en semanas 1–2.',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+flexiones+principiantes+en+casa'
+  },
+  'Jumping Jacks': {
+    desc: 'Cardio clásico que activa todo el cuerpo y sube el ritmo cardíaco rápido.',
+    steps: ['Párate derecho con piernas juntas y brazos a los lados','Salta abriendo piernas más anchas que los hombros','Al mismo tiempo sube los brazos sobre la cabeza','Salta de nuevo cerrando piernas y bajando brazos','Mantén un ritmo constante y respira naturalmente'],
+    tip: '💡 Sin salto: abre y cierra las piernas paso a paso. Igual de efectivo, sin impacto en las rodillas.',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+jumping+jacks+correctamente'
+  },
+  'Zancadas': {
+    desc: 'Ejercicio unilateral para piernas y glúteos. Mejora el equilibrio y la fuerza.',
+    steps: ['Párate derecho, pies juntos, manos en la cintura','Da un paso largo hacia adelante con una pierna','Baja el cuerpo: rodilla trasera casi toca el suelo','La rodilla delantera no debe pasar la punta del pie','Empuja con el pie delantero para volver','Alterna la pierna en cada repetición'],
+    tip: '💡 Si pierdes el equilibrio, apóyate en una silla o pared al principio. Es completamente normal.',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+zancadas+lunges+principiantes'
+  },
+  'Plancha': {
+    desc: 'El mejor ejercicio para el core (abdomen y espalda). Estático pero muy efectivo.',
+    steps: ['Apoya antebrazos y puntas de los pies en el suelo','Cuerpo en línea recta, sin subir ni bajar las caderas','Aprieta el abdomen como si fuera a recibir un golpe','Mira hacia el suelo para mantener el cuello neutro','Respira con normalidad mientras mantienes la posición','Semana 1: mantén 20 seg. Ve aumentando cada semana'],
+    tip: '💡 Si te tiemblan los brazos y la espalda se arquea, baja a la versión con rodillas en el suelo.',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+plancha+abdominal+correctamente+principiantes'
+  },
+  'Burpees': {
+    desc: 'El ejercicio más completo del plan. Trabaja todo el cuerpo y dispara el cardio.',
+    steps: ['Párate derecho','Agáchate y pon las manos en el suelo frente a tus pies','Lanza los pies atrás quedando en posición de plancha','(Opcional) Haz una flexión','Salta los pies hacia las manos','Salta hacia arriba con los brazos al aire'],
+    tip: '💡 Versión modificada (semanas 1–2): en vez de saltar, camina los pies atrás y adelante uno por uno. Sin salto final, solo súbete en puntas.',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+burpees+principiantes+modificados'
+  },
+  'Mountain Climbers': {
+    desc: 'Cardio + core en un solo movimiento. Muy efectivo para quemar grasa.',
+    steps: ['Posición de plancha alta con brazos extendidos','Lleva una rodilla hacia el pecho rápidamente','Vuelve y lleva la otra rodilla','Alterna rápido como si "corrieras" en el suelo','Mantén las caderas bajas, no las subas','Respira de forma constante'],
+    tip: '💡 Si es muy rápido al inicio, hazlo lento y controlado. El beneficio es el mismo.',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+mountain+climbers+correctamente'
+  },
+  'Puente Glúteos': {
+    desc: 'Perfecto para activar glúteos y fortalecer la zona lumbar.',
+    steps: ['Acuéstate boca arriba con rodillas dobladas, pies en el suelo','Pies a la altura de las caderas','Aprieta los glúteos y levanta las caderas hacia el techo','Cuerpo en línea recta de hombros a rodillas','Mantén 1-2 segundos arriba','Baja lentamente sin tocar el suelo del todo'],
+    tip: '💡 Para hacerlo más difícil: levanta un pie del suelo y trabaja una pierna a la vez (versión semanas 5–6).',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+puente+de+gluteos+correctamente'
+  },
+  'Sentadillas Búlgaras': {
+    desc: 'Sentadilla avanzada con pie trasero elevado. Intensísima para glúteos y cuádriceps.',
+    steps: ['Párate de espaldas a una silla (60–70 cm de distancia)','Pon el empeine del pie trasero sobre la silla','El pie delantero va adelante, bien plantado','Baja doblando la rodilla delantera hasta 90°','La rodilla trasera baja casi al suelo','Empuja hacia arriba con el talón delantero'],
+    tip: '💡 La primera vez agárrate de algo para encontrar el equilibrio. Practica el movimiento lento antes de bajar completamente.',
+    yt: 'https://www.youtube.com/results?search_query=como+hacer+sentadilla+bulgara+principiantes'
+  },
+  'Fondos en Silla': {
+    desc: 'Trabaja los tríceps usando solo una silla. Excelente para tonificar los brazos.',
+    steps: ['Siéntate al borde de una silla sólida','Pon las manos en el borde, dedos hacia adelante','Saca las caderas de la silla con piernas extendidas','Baja el cuerpo doblando los codos hasta 90°','Los codos van hacia atrás, no hacia afuera','Empuja hacia arriba extendiendo los brazos'],
+    tip: '💡 Versión más fácil: dobla las rodillas en vez de extender las piernas.',
+    yt: 'https://www.youtube.com/results?search_query=fondos+en+silla+triceps+casa+principiantes'
+  },
+  'Abdominales Bicicleta': {
+    desc: 'El abdominal más efectivo según estudios. Trabaja recto y oblicuos al mismo tiempo.',
+    steps: ['Acuéstate boca arriba, manos detrás de la cabeza','Levanta las piernas y dobla las rodillas a 90°','Lleva el codo derecho hacia la rodilla izquierda','Simultáneamente extiende la pierna derecha','Alterna el movimiento como pedaleando','Haz el movimiento lento y controlado'],
+    tip: '💡 No jales el cuello con las manos. Solo apóyalas suavemente detrás de la cabeza.',
+    yt: 'https://www.youtube.com/results?search_query=abdominales+bicicleta+correctamente+principiantes'
+  },
+};
+
+const exKeyMap = {
+  'Sentadillas': 'Sentadillas',
+  'Sentadillas sumo': 'Sentadillas',
+  'Sentadilla isométrica': 'Sentadillas',
+  'Sentadilla búlgara': 'Sentadillas Búlgaras',
+  'Sentadillas búlgaras': 'Sentadillas Búlgaras',
+  'Sentadilla + press hombro': 'Sentadillas',
+  'Sentadilla con salto': 'Sentadillas',
+  'Flexiones': 'Flexiones',
+  'Flexiones rodillas': 'Flexiones',
+  'Flexiones declinadas silla': 'Flexiones',
+  'Flexiones diamante': 'Flexiones',
+  'Flexiones estándar': 'Flexiones',
+  'Jumping Jacks': 'Jumping Jacks',
+  'Jumping jacks': 'Jumping Jacks',
+  'Zancadas': 'Zancadas',
+  'Zancadas alternadas': 'Zancadas',
+  'Zancadas laterales': 'Zancadas',
+  'Zancadas con impulso': 'Zancadas',
+  'Plancha': 'Plancha',
+  'Plancha lateral': 'Plancha',
+  'Plancha con toque hombro': 'Plancha',
+  'Burpees': 'Burpees',
+  'Burpees completos': 'Burpees',
+  'Burpees modificados': 'Burpees',
+  'Mountain climbers': 'Mountain Climbers',
+  'Mountain climber': 'Mountain Climbers',
+  'Puente glúteos': 'Puente Glúteos',
+  'Puente glúteo una pierna': 'Puente Glúteos',
+  'Hip thrust': 'Puente Glúteos',
+  'Fondos en silla': 'Fondos en Silla',
+  'Fondos': 'Fondos en Silla',
+  'Abdominales bicicleta': 'Abdominales Bicicleta',
+};
+
+function getExKey(name) {
+  for (const k of Object.keys(exKeyMap)) {
+    if (name.toLowerCase().includes(k.toLowerCase())) return exKeyMap[k];
+  }
+  return null;
+}
+
+function openModal(name) {
+  const key = getExKey(name);
+  if (!key || !exercises[key]) return;
+  const ex = exercises[key];
+  document.getElementById('modalTitle').textContent = key.toUpperCase();
+  document.getElementById('modalDesc').textContent = ex.desc;
+  document.getElementById('modalSteps').innerHTML = ex.steps.map((s,i) =>
+    `<li><span class="step-num">${i+1}</span>${s}</li>`).join('');
+  document.getElementById('modalTip').textContent = ex.tip;
+  document.getElementById('modalYT').href = ex.yt;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) { if (e.target === document.getElementById('modalOverlay')) closeModalBtn(); }
+function closeModalBtn() { document.getElementById('modalOverlay').classList.remove('open'); }
+
+const weeks = {
+  1: [
+    { day:'LUN', type:'train', exercises:['Calentamiento 10 min','Sentadillas 3×8','Flexiones rodillas 3×8','Zancadas alternadas 3×8','Plancha 3×20seg','Jumping Jacks 3×30seg','Enfriamiento 10 min'], duration:'50 min' },
+    { day:'MAR', type:'rest', rest:'Descanso total. Deja que tus músculos se recuperen.' },
+    { day:'MIÉ', type:'train', exercises:['Calentamiento 10 min','Sentadillas sumo 3×8','Flexiones rodillas 3×8','Zancadas 3×8','Puente glúteos 3×12','Jumping Jacks 3×40seg','Enfriamiento 10 min'], duration:'50 min' },
+    { day:'JUE', type:'active', rest:'Caminata 20–30 min a ritmo suave.' },
+    { day:'VIE', type:'train', exercises:['Calentamiento 10 min','Sentadillas 3×10','Flexiones 3×8','Zancadas 3×8 c/lado','Plancha 3×25seg','Mountain climbers 3×20seg','Enfriamiento 10 min'], duration:'55 min' },
+    { day:'SÁB', type:'active', rest:'Descanso activo: camina, baila, estira.' },
+    { day:'DOM', type:'rest', rest:'Descanso completo.' },
+  ],
+  2: [
+    { day:'LUN', type:'train', exercises:['Calentamiento 10 min','Sentadillas 3×12','Flexiones 3×10','Zancadas 3×10 c/lado','Plancha 3×30seg','Burpees modificados 3×6','Enfriamiento 10 min'], duration:'55 min' },
+    { day:'MAR', type:'rest', rest:'Descanso. Come bien y duerme 7–8 horas.' },
+    { day:'MIÉ', type:'train', exercises:['Calentamiento 10 min','Sentadillas 3×12','Mountain climbers 3×30seg','Flexiones 3×10','Puente glúteos 3×15','Jumping Jacks 3×45seg','Enfriamiento 10 min'], duration:'55 min' },
+    { day:'JUE', type:'active', rest:'Caminata 30 min o yoga suave.' },
+    { day:'VIE', type:'train', exercises:['Calentamiento 10 min','Sentadillas 3×12','Flexiones 3×10','Burpees modificados 3×8','Plancha 3×35seg','Mountain climbers 3×30seg','Enfriamiento 10 min'], duration:'60 min' },
+    { day:'SÁB', type:'active', rest:'Stretching completo 20–30 min.' },
+    { day:'DOM', type:'rest', rest:'Descanso total.' },
+  ],
+  3: [
+    { day:'LUN', type:'train', exercises:['Calentamiento 10 min','Burpees completos ×4 rondas','Sentadilla con salto ×4 rondas','Mountain climbers ×4 rondas','Flexiones estándar ×4 rondas','Enfriamiento 10 min'], duration:'60 min' },
+    { day:'MAR', type:'rest', rest:'Descanso. El músculo crece cuando descansas.' },
+    { day:'MIÉ', type:'train', exercises:['Calentamiento 10 min','Sentadillas búlgaras 3×12','Zancadas con impulso 3×10','Puente glúteo una pierna 3×10','Sentadilla isométrica 3×45seg','Enfriamiento 10 min'], duration:'60 min' },
+    { day:'JUE', type:'active', rest:'Trote suave 20 min o bicicleta.' },
+    { day:'VIE', type:'train', exercises:['Calentamiento 10 min','Flexiones diamante 3×10','Fondos en silla 3×12','Plancha con toque hombro 3×10','Abdominales bicicleta 3×15','Enfriamiento 10 min'], duration:'60 min' },
+    { day:'SÁB', type:'active', rest:'Caminata larga 40–45 min.' },
+    { day:'DOM', type:'rest', rest:'¡4 semanas! El cambio ya está en marcha.' },
+  ],
+  4: [
+    { day:'LUN', type:'train', exercises:['Calentamiento 10 min','Sentadilla + press hombro ×4','Flexiones estándar ×4','Fondos en silla ×4','Plancha 1 min ×4','Enfriamiento 10 min'], duration:'60 min' },
+    { day:'MAR', type:'train', exercises:['Calentamiento 8 min','Burpees completos HIIT','Mountain climbers HIIT','Jumping Jacks HIIT','Sentadillas con salto HIIT','Enfriamiento 10 min'], duration:'50 min' },
+    { day:'MIÉ', type:'rest', rest:'Descanso. Ya entrenas 4 días — el descanso es parte del plan.' },
+    { day:'JUE', type:'train', exercises:['Calentamiento 10 min','Sentadillas búlgaras ×4','Hip thrust ×4','Zancadas laterales ×4','Sentadilla isométrica 60seg','Enfriamiento 10 min'], duration:'60 min' },
+    { day:'VIE', type:'train', exercises:['Calentamiento 10 min','Full body circuito final ×4','Burpees completos','Flexiones + Mountain climbers','Sentadillas + Zancadas','Enfriamiento 15 min'], duration:'60 min' },
+    { day:'SÁB', type:'active', rest:'Actividad libre: baila, nada, camina.' },
+    { day:'DOM', type:'rest', rest:'¡8 semanas! Evalúa tu progreso y define el siguiente nivel.' },
+  ]
+};
+
+const dayMap = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+const todayShort = dayMap[new Date().getDay()];
+const dayNames = { 'LUN':'Lunes','MAR':'Martes','MIÉ':'Miércoles','JUE':'Jueves','VIE':'Viernes','SÁB':'Sábado','DOM':'Domingo' };
+
+function setTodayBanner(days) {
+  const today = days.find(d => d.day === todayShort);
+  const label = `Hoy — ${dayNames[todayShort] || todayShort}`;
+  document.getElementById('todayLabel').textContent = label;
+  if (!today) { document.getElementById('todayText').textContent = 'Selecciona otra semana para ver tu día.'; return; }
+  if (today.type === 'train') document.getElementById('todayText').textContent = '🔥 ¡Día de entreno! Toca sudar hoy.';
+  else if (today.type === 'active') document.getElementById('todayText').textContent = '🚶 Descanso activo — Camina 20–30 min a ritmo suave.';
+  else document.getElementById('todayText').textContent = '💤 Día de descanso total — Recupera energía.';
+}
+
+const ytIcon = `<svg viewBox="0 0 24 24" width="8" height="8" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2C0 8.1 0 12 0 12s0 3.9.5 5.8a3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1C24 15.9 24 12 24 12s0-3.9-.5-5.8zM9.7 15.5V8.5l6.3 3.5-6.3 3.5z"/></svg>`;
+
+function renderCalendar(days) {
+  const cal = document.getElementById('calendar');
+  cal.innerHTML = '';
+  days.forEach(d => {
+    const isToday = d.day === todayShort;
+    const card = document.createElement('div');
+    card.className = `day-card ${d.type === 'train' ? 'train' : ''} ${isToday ? 'today' : ''}`;
+
+    let badge = d.type === 'train'
+      ? `<span class="day-type badge-train">Entreno</span>`
+      : d.type === 'active'
+      ? `<span class="day-type badge-active">Activo</span>`
+      : `<span class="day-type badge-rest">Descanso</span>`;
+
+    let content = '';
+    if (d.exercises) {
+      const items = d.exercises.map(e => {
+        const key = getExKey(e);
+        const hasVideo = !!key;
+        return `<li class="ex-item">
+          <span class="ex-name">${e}</span>
+          ${hasVideo ? `<button class="yt-btn" onclick="openModal('${e.replace(/'/g,"\\'")}')">
+            ${ytIcon} Ver
+          </button>` : ''}
+        </li>`;
+      }).join('');
+      content = `<ul class="exercises">${items}</ul><div class="duration">⏱ ${d.duration}</div>`;
+    } else {
+      content = `<div class="rest-icon">${d.type === 'active' ? '🚶' : '💤'}</div>
+      <div class="rest-text">${d.rest}</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="day-name">${d.day}${isToday ? ' ◉' : ''}</div>
+      ${badge}${content}`;
+    cal.appendChild(card);
+  });
+}
+
+function showWeek(n, tabEl) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  renderCalendar(weeks[n]);
+  setTodayBanner(weeks[n]);
+}
+
+renderCalendar(weeks[1]);
+setTodayBanner(weeks[1]);
+</script>
+</body>
+</html>
